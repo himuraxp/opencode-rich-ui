@@ -1,9 +1,11 @@
 # STATUS
 
 ## En cours
-- Commit initial + push GitHub (tout est vérifié et prêt).
+- (rien — Phase 0 clôturée et poussée)
 
 ## Terminé (2026-10-16)
+- **Commit initial poussé** : `deedfc3` `feat: Initial commit of opencode-rich-ui plugin POC`
+  (32 fichiers, 2379 insertions) sur `origin/main` (github.com/himuraxp/opencode-rich-ui).
 - POC inline VALIDÉ : plugin TUI `opencode-rich-ui` chargé par opencode 2.0.30,
   renderer `richui` enregistré, Panel rendu inline pendant/après streaming.
 - Boucle de correction post-review (reviewer adversarial, 12 findings) :
@@ -25,4 +27,4 @@
 - (rien)
 
 ## Prochaine action
-- Commit + push, puis ratification utilisateur du gate → Lot 1 (Metric + Table).
+- Ratification utilisateur du gate → Lot 1 (Metric + Table) si accord.
