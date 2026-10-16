@@ -39,20 +39,22 @@ tui.ts                                      entrypoint convention chargeur (<dir
 
 ## 2. Tests exécutés et résultats
 
-**`bun test` — 60 pass / 0 fail / 176 assertions** (5 fichiers) :
+**`bun test` — 108 pass / 0 fail / 1871 assertions** (5 fichiers) :
 
-- `test/parse.test.ts` (15) : parse/validate/normalise, caps (64 Ko, 200 lignes,
-  2000 car/ligne, titre 80), tone insensible à la casse, sanitisation
-  (strip ANSI/C0, tabs → 2 espaces), adversarial never-throw.
+- `test/parse.test.ts` (47) : parse/validate/normalise panel + metric + table,
+  caps (64 Ko, 200 lignes, 2000 car/ligne, titre 80, metric 80/40, table 8
+  colonnes/200 rows/cellule 500), coercition JSON (number/boolean → texte),
+  tone insensible à la casse, sanitisation (strip ANSI/C0, CR→LF, tabs → 2
+  espaces), adversarial never-throw.
 - `test/width.test.ts` (23) : largeur en **cellules terminales** (CJK/emoji
   double-largeur, combining marks), troncature exacte, wrap mots + rupture
   dure O(n) avec cap `MAX_WRAPPED_LINES`, newlines/vides préservés, seuils layout.
-- `test/render.test.ts` (7) : rendu **headless officiel**
+- `test/render.test.ts` (23) : rendu **headless officiel**
   (`@opentui/core/testing` → `createTestRenderer` + `captureCharFrame`) —
-  bordered, wrap in-box, compact < 40 col, sans titre, garde anti-complexité
-  (corps pathologique 200 lignes × 2000 car, plafond 1,5 s — mesuré 180-640 ms
-  selon charge ; hauteur ≤ cap + 3, notice de troncature peinte dans un
-  viewport dédié).
+  panel (bordered, wrap, compact, sans titre, garde anti-complexité), metric
+  (flèches ▲/▼, compact), table (alignement, wrap intra-colonne, cap avec
+  notice clampée, narrow 8 colonnes masquées, titre compact, header
+  pathologique) — asserts sur la frame peinte, non circulaires.
 - `test/theme.test.ts` (5) : tokens RGBA du thème hôte (accès structurel,
   branches manquantes, objets malformés rejetés).
 - `test/plugin.test.ts` (10) : contrat module V2 (`{id, setup}` ≡ `ePt`),
@@ -72,6 +74,7 @@ tui.ts                                      entrypoint convention chargeur (<dir
 | E6 | Rechargement à chaud + nettoyage | modif `tui.ts` → `module-import` → `unregister-ok` → `setup-called` → `register-ok` |
 | E7 | Terminal étroit (60 col) | panel borné au canevas, corps wrappé, zéro débordement |
 | E8 | Re-validation post-refactor (largeur cellules + cap) | transition dynamique prouvée : fallback code block @21499 B (JSON partiel, stream vivant `esc interrupt`) → Panel `Build` inline @51060 B ; frame finale : 2 Panels inline, zéro fallback, à 110 **et** 60 col |
+| E9 | Lot 1 — Metric + Table inline | mock étendu à 4 blocs `richui` : Panels `Build`+`Checks`, Metric `Coverage` (▲ 94.2% peint), Table `Files` (parse.ts/12ms alignés) — tous vus peints dans le stream (balayage pyte @47718→163604 B), **zéro repli textuel en frame finale**, à 110 **et** 60 col (les blocs du début scrollent hors snapshot final — écran 40/30 lignes) |
 
 ## 3. API OpenCode utilisées (toutes publiques, v2.0.30)
 
@@ -105,7 +108,11 @@ Références croisées : code du plugin builtin `opencode.merman` (mermaid) et
 3. **wcwidth maison** — largeur en cellules terminales via plages Unicode
    large (CJK, emoji, combining marks) — correction post-review du comptage
    par graphèmes ; caractères zéro-largeur exotiques hors plages couvertes
-   non traités (à raffiner si besoin post-Phase 0).
+   non traités (à raffiner si besoin).
+4. **Dégradations narrow assumées** (Lot 1) — table : colonnes de droite
+   masquées et notices tronquées au canevas quand l'espace manque
+   (l'information du compte peut être coupée en très étroit) ; zéro
+   débordement prime.
 4. **Debug markers** — journal de cycle de vie conditionné par
    `OPENCODE_RICHUI_DEBUG` (dev uniquement, coût nul sinon).
 5. **Un seul composant** (Panel) — gate de la mission : les 4 autres
@@ -122,14 +129,35 @@ reconstruites au flux (D6). Les panneaux de session (`ui.panel`) et routes
 stratégie primaire — le POC inline étant validé, la condition de repli du
 gate n'a pas eu à s'appliquer.
 
-## 6. Prochain lot recommandé
+## 6. Lot 1 — Metric + Table (livré 2026-10-16, gate ratifié)
 
-1. **Lot 1 (MVP visuel)** : `Metric` (valeur+delta+tonalité) et `Table`
-   (colonnes wrappées, trié statique) — réutilisent 100 % de core/layout/theme.
-2. **Lot 2** : `Chart` (barres/sparkline ASCII via grille OpenTUI) + cache
+Deux composants ajoutés sur le pattern Panel, 100 % réutilisation de
+core/layout/theme :
+
+- **Metric** (`label`/`value`/`delta`) — value en couleur accent, delta avec
+  flèche directionnelle (▲/▼ dérivés du signe, présentation seule), label sur
+  la bordure (bordered) ou muted (compact). Chrome partagé avec panel/table
+  (`components/chrome.ts`, extraction du pattern Phase 0).
+- **Table** — colonnes dimensionnées au contenu (mesure en cellules), clampées
+  pour ne jamais dépasser le canevas ; en narrow, les colonnes de droite sont
+  **masquées** avec notice plutôt que débordantes ; cellules wrappées par
+  colonne ; header accent + règle ; cap `MAX_WRAPPED_LINES` post-wrap avec
+  notice **clampée au canevas** (le contrat zéro-débordement prime sur
+  l'informativité de la notice) ; lignes tronquées par le parseur signalées
+  (`truncatedRows`).
+
+Correction de la review adversariale (2 HIGH) : débordement compact
+multi-colonnes (8 colonnes @ w≤23) et notices non clampées — corrigés puis
+verrouillés par tests narrow (frames peintes). Assouplissements de tests
+découlant du clamp : notice `hardWrap` assertée par préfixe « … » (width),
+notice render-cap par préfixe stable (render).
+
+## 7. Prochain lot recommandé
+
+1. **Lot 2** : `Chart` (barres/sparkline ASCII via grille OpenTUI) + cache
    last-good anti-flicker pendant le streaming.
-3. **Lot 3** : `Review` (verdict + checklist) + `ui.panel.open` en vue
+2. **Lot 3** : `Review` (verdict + checklist) + `ui.panel.open` en vue
    détaillée (interaction clavier), si l'usage le justifie.
-4. **Industrialisation** : publication npm (build `bun build --target=bun`
+3. **Industrialisation** : publication npm (build `bun build --target=bun`
    vers `dist/`, entrypoint `tui.js`), CI GitHub Actions (typecheck+tests),
    test E2E rejoué automatiquement sur montée d'OpenCode.

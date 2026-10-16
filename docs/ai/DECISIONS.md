@@ -35,6 +35,21 @@ pas d'état dans les composants. Preuve teardown hôte : `clearBlockStates()`
 d'objets renderables** ; destroy-on-failure pour les arbres partiels. Cache
 last-good type merman = optimisation future. → docs/adr/ADR-001-inline-rendering.md (D6)
 
+## 2026-10-16 — D7 : chrome de composants partagé (chrome.ts)
+Extraction du chrome bordered/compact du panel vers `components/chrome.ts`
+(createBorderedBox/createCompactBox/textBlock/destroyBox) — 3 composants
+l'utilisent (panel, metric, table). Extraction faite en move pur (60 tests
+Phase 0 inchangés verts). Budget chrome = LayoutProfile.innerWidth, source
+unique. → docs/REPORT.md §6
+
+## 2026-10-16 — D8 : dégradation narrow de la table (zéro débordement prime)
+En narrow, le nombre de colonnes visibles est plafonné
+(floor((innerWidth+gap)/(1+gap))) et les colonnes de droite sont masquées
+avec notice, plutôt que de déborder. Toutes les notices sont clampées au
+canevas (truncateToWidth) — y compris la notice interne de hardWrap. Le
+contrat zéro-débordement prime sur l'informativité des notices (2 asserts de
+tests assouplies en conséquence). → docs/REPORT.md §4/§6
+
 ## 2026-10-16 — Convention cli.json : répertoire + tui.ts
 Découverte empirique : `file://` vers un fichier est ignoré silencieusement
 (`stat.isFile() → continue` dans la boucle de reconciliation). Entrée valide =

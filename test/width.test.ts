@@ -115,7 +115,9 @@ describe("hardWrap", () => {
     const words = Array.from({ length: 3000 }, (_, i) => `w${i}`).join(" ");
     const lines = hardWrap(words, 10);
     expect(lines.length).toBe(MAX_WRAPPED_LINES + 1);
-    expect(lines[MAX_WRAPPED_LINES]).toContain("truncated");
+    // Notice is clamped to maxWidth (10) — assert the notice row exists and
+    // starts with the ellipsis marker rather than matching its full text.
+    expect(lines[MAX_WRAPPED_LINES]?.startsWith("…")).toBe(true);
   });
 
   test("handles degenerate width", () => {

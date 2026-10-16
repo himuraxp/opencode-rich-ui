@@ -8,6 +8,16 @@
 export { default } from "./adapter/plugin.ts";
 export { PLUGIN_ID } from "./adapter/plugin.ts";
 export { parseRichui } from "./core/parse.ts";
-export { RICHUI_LANGUAGE, type ParseResult, type RichuiSpec } from "./core/schema.ts";
+export {
+  RICHUI_LANGUAGE,
+  type ParseResult,
+  type RichuiSpec,
+  type PanelSpec,
+  type MetricSpec,
+  type TableSpec,
+} from "./core/schema.ts";
 export { layoutFor, hardWrap, truncateToWidth, visualLength } from "./layout/width.ts";
 export { buildPanel } from "./components/panel.ts";
+export { buildMetric } from "./components/metric.ts";
+export { buildTable } from "./components/table.ts";
+export type { ComponentPalette } from "./adapter/theme.ts";

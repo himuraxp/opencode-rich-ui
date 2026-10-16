@@ -35,14 +35,33 @@ le contenu est du **JSON déclaratif strict** — jamais exécuté.
 3. Lancer `opencode` : le plugin se charge, se ré-enregistre à chaud à chaque
    modification de ses sources (watcher intégré).
 
-## Format (Phase 0 — Panel)
+## Format (Phase 0 — Panel · Lot 1 — Metric, Table)
 
 ```jsonc
+// Panel : texte riche cadré
 {
-  "component": "panel",        // discriminant (panel ; metric/table/chart/review prévus)
+  "component": "panel",
   "title": "…",                // optionnel, replié sur une ligne (max 80 car)
   "body": "…",                 // requis, multi-lignes ; tabs → 2 espaces, séquences ANSI/C0 retirées, espacement intérieur préservé
   "tone": "info"               // optional: neutral|info|success|warning|error
+}
+
+// Metric : valeur mise en avant (accent), delta directionnel (signe → ▲/▼)
+{
+  "component": "metric",
+  "label": "…",                // optionnel (max 80 car)
+  "value": "94.2%",            // requis — string ou nombre JSON
+  "delta": "+1.3",             // optionnel — le signe en tête devient la flèche
+  "tone": "success"
+}
+
+// Table : colonnes au contenu, cellules wrappées, zéro débordement du canevas
+{
+  "component": "table",
+  "title": "…",                // optionnel
+  "columns": ["Fichier", "Statut"],     // 1 à 8 ; nombres/booléens JSON acceptés
+  "rows": [["parse.ts", "ok"], ["width.ts", true]],  // longueur = columns
+  "tone": "success"
 }
 ```
 
@@ -54,7 +73,7 @@ reste affiché comme **code block par défaut** — le contenu n'est jamais perd
 | Couche | Fichiers | Responsabilité |
 |---|---|---|
 | `core` | `schema.ts`, `parse.ts` | parsing total (jamais de throw), validation, normalisation |
-| `components` | `panel.ts` | widgets OpenTUI purs (Box+Text), couleurs du thème |
+| `components` | `chrome.ts`, `panel.ts`, `metric.ts`, `table.ts` | chrome partagé (bordered/compact) + widgets OpenTUI purs, couleurs du thème |
 | `layout` | `width.ts` | largeur en cellules (CJK/emoji), wrap mots + rupture dure O(n) + cap, troncature, seuil 40 col |
 | `adapter` | `opencode-api.ts`, `opentui.ts`, `theme.ts`, `plugin.ts` | contrat OpenCode vérifié, bridge never-throw, cycle de vie |
 
@@ -63,7 +82,7 @@ reste affiché comme **code block par défaut** — le contenu n'est jamais perd
 ```bash
 bun install
 bun run check        # tsc --noEmit (strict) + bun test
-bun test             # 60 tests (unitaires + rendu headless @opentui/core/testing)
+bun test             # 108 tests (unitaires + rendu headless @opentui/core/testing)
 ```
 
 Diagnostic (dev) : `OPENCODE_RICHUI_DEBUG=<dir> opencode` journalise le cycle

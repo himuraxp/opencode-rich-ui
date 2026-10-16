@@ -12,7 +12,8 @@
 
 import type { ColorValue, ThemeTokens } from "./opencode-api.ts";
 
-export interface PanelPalette {
+/** Shared palette for components (title accent, text, muted, border). */
+export interface ComponentPalette {
   readonly title?: ColorValue;
   readonly text?: ColorValue;
   readonly muted?: ColorValue;
@@ -20,10 +21,10 @@ export interface PanelPalette {
 }
 
 /** Tone → theme token mapping for the panel accent. */
-export function paletteFor(theme: ThemeTokens | undefined, tone: string): PanelPalette {
+export function paletteFor(theme: ThemeTokens | undefined, tone: string): ComponentPalette {
   if (!theme) return {};
   const feedback = feedbackColor(theme, tone);
-  const palette: { -readonly [K in keyof PanelPalette]: PanelPalette[K] } = {};
+  const palette: { -readonly [K in keyof ComponentPalette]: ComponentPalette[K] } = {};
   const text = theme.text?.base;
   if (isColorValue(text)) palette.text = text;
   const muted = theme.text?.muted;

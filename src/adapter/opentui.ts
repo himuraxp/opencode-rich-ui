@@ -9,6 +9,8 @@
 import type { ParseResult, RichuiSpec } from "../core/schema.ts";
 import { parseRichui } from "../core/parse.ts";
 import { buildPanel } from "../components/panel.ts";
+import { buildMetric } from "../components/metric.ts";
+import { buildTable } from "../components/table.ts";
 import { paletteFor } from "./theme.ts";
 import type {
   CodeBlockRenderContext,
@@ -61,6 +63,10 @@ function buildRenderable(spec: RichuiSpec, context: TuiPluginContext): Renderabl
   switch (spec.component) {
     case "panel":
       return buildPanel({ spec, palette, terminalWidth, renderer: context.renderer });
+    case "metric":
+      return buildMetric({ spec, palette, terminalWidth, renderer: context.renderer });
+    case "table":
+      return buildTable({ spec, palette, terminalWidth, renderer: context.renderer });
   }
 }
 

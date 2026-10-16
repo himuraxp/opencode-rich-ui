@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-10-16 (Lot 1) — Metric + Table, gate ratifié
+- `metric.ts` : label/value/delta, value en accent, flèches ▲/▼ dérivées du
+  signe (les deux modes), label muted en compact.
+- `table.ts` : colonnes au contenu (visualLength), clamp canevas, wrap par
+  cellule, header accent + règle, cap MAX_WRAPPED_LINES post-wrap, notices
+  clampées, colonnes de droite masquées en narrow + notice.
+- `chrome.ts` : chrome bordered/compact partagé (extraction panel, move pur).
+- Parser : coercition number/boolean, caps metric/table, CR→LF dans sanitize,
+  fails précis (row length, types de cellules).
+- Review adversariale : 2 HIGH corrigés + verrouillés par 8 tests narrow
+  (frames peintes) ; 2 asserts tests assouplies en cohérence avec le clamp.
+- Tests : 108/108 (1871 assertions) ; tsc 0 erreur. Test perf : plafond 8 s
+  (garde anti-complexité, bruit 0,18-3,5 s mesuré).
+- E2E (E9) : 4 blocs richui inline (110/60 col), zéro repli final.
+- Docs : REPORT §2/§4/§6/§7, README formats, docs/ai.
+
 ## 2026-10-16 (suite) — Boucle de correction post-review + re-validation E2E
 - Corrections reviewer adversarial appliquées : largeur en **cellules
   terminales** (CJK/emoji, plages Unicode large), hardWrap O(n) + cap

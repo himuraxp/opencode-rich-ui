@@ -188,7 +188,8 @@ export function hardWrap(text: string, maxWidth: number): string[] {
   }
   if (out.length > MAX_WRAPPED_LINES) {
     const kept = out.slice(0, MAX_WRAPPED_LINES);
-    kept.push(`… (${out.length - MAX_WRAPPED_LINES} more lines truncated)`);
+    // Clamp the notice itself: in a 1-cell column it must not overflow.
+    kept.push(truncateToWidth(`… (${out.length - MAX_WRAPPED_LINES} more lines truncated)`, maxWidth));
     return kept;
   }
   return out;
