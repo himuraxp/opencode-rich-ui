@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2026-10-16 (Phase graphique) — Qualification produit RATIFIÉE : APPROVED + KEEP-OPT-IN durable
+- Validation 1 (visuel Orca) : PASS — l'utilisateur confirme le rendu kitty net.
+- Validation 2 (mémoire) : 4 cycles × 13 blocs = 100 rendus, trace RSS 210 s —
+  27 hausses vs 33 baisses >2 Mo (GC actif, pas de fuite monotone) ; croissance
+  nette 60-80 Mo notée, ACCEPTED sous opt-in avec réserve.
+- Validation 3 (copie) : **FAIL** — la sélection dans une image kitty copie le
+  buffer des cellules, pas le contenu visuel (COPY-ME-42 non récupérable).
+  Constat bonus : **les images kitty ne survivent pas au scrollback** (carré
+  gris après scroll) — viewport courante uniquement.
+- Les 2 limitations = inhérentes au protocole kitty inline (Orca/OpenTUI),
+  BLOQUANTES pour DEFAULT-ON, pas pour l'usage volontaire (opt-in).
+- Arbitrage ratifié : natif = copiable + persistant → défaut durable ;
+  graphique = opt-in visualisation ponctuelle. PANEL/TABLE : écartés.
+- Forcing test-only retiré définitivement ; 145/145 verts.
+
 ## 2026-10-16 (Phase graphique) — Étape 3 + VERDICT FINAL : APPROVED
 - Stress batch : mock étendu (13 blocs : 3 initiaux + 10 metrics tones/deltas
   variés). n=25 rendus graphiques réels mesurés : SVG p50 0,1/p95 0,1 ms ;

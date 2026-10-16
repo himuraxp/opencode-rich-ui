@@ -1,19 +1,20 @@
 # STATUS
 
 ## En cours
-- **Phase graphique : CLÔTURÉE — ChatGPT : APPROVED + KEEP-OPT-IN**
-- POC METRIC graphique : DONE (aucun P0 ouvert).
-- **Qualification produit / DEFAULT-ON : PENDING** — 3 validations restantes :
-  (1) rendu visuel Orca confirmé par l'utilisateur (netteté, contraste,
-  stabilité resize — la donnée technique kitty est acquise), (2) cycles
-  mémoire prolongés, (3) ergonomie sélection/copie. Aucune réouverture de
-  phase requise pour ces vérifications.
-- Politique d'activation cible (ChatGPT) : après qualification positive →
-  auto sur kitty/sixel avec opt-out explicite (aucune modification du JSON
-  ni de l'architecture requise).
-- PANEL/TABLE graphiques : hors périmètre tant que le bénéfice visuel/fonctionnel
-  supérieur au natif n'est pas démontré.
-- En parallèle : push `cb808f3` (itération design) sur validation utilisateur.
+- **Phase graphique : TOUT EST CLÔTURÉ — ChatGPT : APPROVED + KEEP-OPT-IN durable**
+- Qualification ratifiée : visuel PASS · kitty PASS · perf PASS · mémoire
+  ACCEPTED sous opt-in (croissance nette 60-80 Mo / 100 rendus, pas de fuite
+  monotone, GC actif — réserve notée) · **copie FAIL** · **scrollback FAIL** ·
+  fallback PASS · 145/145 verts.
+- **Arbitrage ratifié** : les 2 limitations kitty (copie, scrollback) sont
+  BLOQUANTES pour DEFAULT-ON, pas pour l'usage volontaire. Le natif (copiable,
+  persistant) reste le défaut durable ; le graphique = opt-in visualisation
+  ponctuelle. PANEL/TABLE graphiques : écartés.
+- Les limitations sont qualifiées « limites de l'intégration kitty observée
+  dans Orca/OpenTUI » — à re-vérifier si OpenTUI/Orca évolue (persistance
+  d'images ou cellules texte sous image).
+- Prochaine étape éventuelle du projet : nouveaux composants natifs ou
+  améliorations du rendu natif (rien d'ouvert).
 
 ## Terminé (2026-10-16, Étape 2 — METRIC graphique)
 - `src/adapter/graphics.ts` (backend opt-in : preload lazy resvg au setup,
