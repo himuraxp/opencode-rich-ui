@@ -1,9 +1,11 @@
 # STATUS
 
 ## En cours
-- (rien — Lot 1 clôturé, prêt à committer)
+- (rien — Lot 1 clôturé et poussé)
 
 ## Terminé (2026-10-16)
+- **Lot 1 committé** : `603cc84` `feat: add Metric and Table components with
+  shared box chrome` (22 fichiers, +1709/-228) sur `origin/main`.
 - **Gate ratifié par l'utilisateur → Lot 1 (Metric + Table) livré.**
 - Composants : `metric.ts` (value accent, delta ▲/▼ par signe, label bordure/
   muted), `table.ts` (colonnes au contenu, wrap par cellule, cap post-wrap,
@@ -29,4 +31,4 @@
 - (rien)
 
 ## Prochaine action
-- Commit Lot 1 (via Spark), puis Lot 2 (Chart + cache last-good) si accord.
+- Lot 2 (Chart + cache last-good) si l'utilisateur valide ; industrialisation possible avant.
