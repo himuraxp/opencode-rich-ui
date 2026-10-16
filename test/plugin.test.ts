@@ -5,10 +5,11 @@
  * test renderer (@opentui/core/testing) as render context.
  */
 
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { createTestRenderer, type TestRendererSetup } from "@opentui/core/testing";
 import plugin from "../src/index.ts";
 import { PLUGIN_ID } from "../src/index.ts";
+import { graphicsBackend } from "../src/adapter/graphics.ts";
 import type {
   CodeBlockRenderer,
   CodeBlockToken,
@@ -17,6 +18,20 @@ import type {
 import { parseRichui } from "../src/core/parse.ts";
 
 let harness: TestRendererSetup | undefined;
+
+// Env hygiene (Tester finding F4): a user shell exporting RICHUI_GRAPHICS=1
+// would make plugin.setup() preload the REAL resvg in this shared test
+// process. Scrub before any setup() runs and reset the backend state.
+beforeAll(() => {
+  delete process.env.RICHUI_GRAPHICS;
+  delete process.env.RICHUI_GRAPHICS_FORCE_PROTOCOL;
+  delete process.env.RICHUI_GRAPHICS_DEBUG;
+  delete process.env.RICHUI_SPIKE_IMAGE;
+  const backend = graphicsBackend();
+  backend.resvg = null;
+  backend.loadError = null;
+  backend.loadMs = null;
+});
 
 async function getHarness(): Promise<TestRendererSetup> {
   if (!harness) harness = await createTestRenderer({ width: 60, height: 20 });

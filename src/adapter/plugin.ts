@@ -15,6 +15,7 @@
 
 import { RICHUI_LANGUAGE } from "../core/schema.ts";
 import { createRichuiRenderer } from "./opentui.ts";
+import { preloadGraphics } from "./graphics.ts";
 import { debug } from "./debug.ts";
 import type { TuiPluginContext, TuiPluginModule } from "./opencode-api.ts";
 
@@ -24,6 +25,11 @@ debug("module-import");
 
 async function setup(context: TuiPluginContext): Promise<(() => void) | void> {
   debug("setup-called", `version=${context?.app?.version ?? "unknown"}`);
+  // Lazy graphics preload — ONLY with the opt-in (RICHUI_GRAPHICS=1); any
+  // failure is recorded and the native renderer stays the default path.
+  await preloadGraphics().catch(() => {
+    /* preloadGraphics never throws, but never let this reject setup either */
+  });
   try {
     const unregister = context.markdown.registerCodeBlockRenderer(
       RICHUI_LANGUAGE,

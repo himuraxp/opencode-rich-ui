@@ -62,3 +62,42 @@ function isColorValue(value: unknown): value is ColorValue {
   );
 }
 
+/**
+ * Normalize a host ColorValue to a CSS color string (SVG/CSS consumers).
+ * The host RGBA class exposes its components as NORMALIZED floats through
+ * the r/g/b getters (127 → 0.498) — reading them verbatim silently renders
+ * black (the contrast bug caught in the Étape-2 review). toInts() returns
+ * the true 0-255 components; the fallback path detects normalization and
+ * rescales. Strings pass through untouched; anything else → undefined.
+ */
+export function cssColor(value: ColorValue | undefined): string | undefined {
+  if (typeof value === "string") return value.length > 0 ? value : undefined;
+  if (typeof value !== "object" || value === null) return undefined;
+  const candidate = value as unknown as {
+    toInts?: () => readonly number[];
+    r?: unknown;
+    g?: unknown;
+    b?: unknown;
+    a?: unknown;
+  };
+  if (typeof candidate.toInts === "function") {
+    const ints = candidate.toInts();
+    const [r, g, b, a] = ints;
+    if (typeof r === "number" && typeof g === "number" && typeof b === "number") {
+      return formatColor(r, g, b, typeof a === "number" ? a : 1);
+    }
+  }
+  const { r, g, b } = candidate;
+  if (typeof r !== "number" || typeof g !== "number" || typeof b !== "number") return undefined;
+  const scale = Math.max(r, g, b) <= 1 ? 255 : 1;
+  const a = typeof candidate.a === "number" ? candidate.a : 1;
+  return formatColor(r * scale, g * scale, b * scale, a);
+}
+
+function formatColor(r: number, g: number, b: number, a: number): string {
+  const clamp = (n: number): number => Math.max(0, Math.min(255, Math.round(n)));
+  return a >= 1
+    ? `rgb(${clamp(r)},${clamp(g)},${clamp(b)})`
+    : `rgba(${clamp(r)},${clamp(g)},${clamp(b)},${a})`;
+}
+

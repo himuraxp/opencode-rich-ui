@@ -20,5 +20,8 @@
     "src",
     "tui.ts",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
 }
