@@ -30,3 +30,13 @@ repli dynamique). Zone : harnais hors repo (INDEX, section hors repo).
 Leçon datée 2026-10-16 : le mock initial envoyait un JSON `Build` jamais
 fermé → fallback permanent, confondu avec un rendu inline par des checks
 non discriminants.
+
+## W-05 — Largeur « Ambiguous » des flèches ▲/▼ (actif, limite connue)
+U+25B2/U+25BC sont East-Asian *Ambiguous* : comptés 1 cellule par
+`src/layout/width.ts` mais peints 2 sur certains terminaux. Effets possibles :
+décalage de 1 cellule du right-align du delta metric (same-line) et, en
+compact, un débordement d'1 cellule possible sur le bord du box. Préexistant
+à l'itération design 2026-10-16, non aggravé par elle. Ne PAS deviner la
+largeur par terminal : si un jour un fix est nécessaire, passer par une liste
+explicite de ranges Ambiguous dans `width.ts` + tests. Zone : `width.ts`,
+`metric.ts`.

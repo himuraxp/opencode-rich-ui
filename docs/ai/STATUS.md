@@ -1,9 +1,30 @@
 # STATUS
 
 ## En cours
-- (rien — Lot 1 clôturé et poussé)
+- (rien — itération design committée en attente de push)
 
-## Terminé (2026-10-16)
+## Terminé (2026-10-16, après-midi)
+- **Itération design ChatGPT (skill ai-cowork) : APPROVED au tour 2.**
+  - Tour 1 : `VERDICT: ITERATE`, 9 points priorisés ; [P0-3] (masquer le JSON
+    incomplet au streaming) **VETOED** sur règle AGENTS.md explicite (fallback
+    obligatoire, contenu jamais perdu) → accepté par ChatGPT au tour 2.
+  - Changements appliqués : bordures **neutres** (token border du thème, le
+    tone ne porte plus que le titre — `theme.ts paletteFor`) ; metric
+    same-line « value … ▲ delta » right-aligned si ça tient, 2 lignes sinon,
+    value **bold** (`createTextAttributes`, API publique confirmée) ; table :
+    règle interne **muted** + cellules purement numériques right-aligned
+    (`/^-?\d+(?:[.,]\d+)?$/`, mono-ligne, headers exclus).
+  - Tests : **111/111 verts** (1877 assertions) — +2 tests frame peinte
+    (same-line + borne exactly-fits/inner−1), assertion table alignement droit
+    mise à jour, test border-token neutre ajouté. tsc strict 0 erreur.
+  - Review adversariale Reviewer : **mergeable**, 0 blocant (6 invariants
+    vérifiés dont destroy-on-failure et exactOptionalPropertyTypes) ; R1/R3
+    corrigés avant commit, R2 → W-05, R4 → cette mise à jour.
+  - Preuves : sheets PNG `design-sheet{-v2}.png` (harnais, renderer pyte→PIL)
+    envoyés à ChatGPT (thread dédié) ; conversation ouverte via
+    browser-debug (port 9222).
+
+## Terminé (2026-10-16, matin)
 - **Lot 1 committé** : `603cc84` `feat: add Metric and Table components with
   shared box chrome` (22 fichiers, +1709/-228) sur `origin/main`.
 - **Gate ratifié par l'utilisateur → Lot 1 (Metric + Table) livré.**
@@ -31,4 +52,5 @@
 - (rien)
 
 ## Prochaine action
-- Lot 2 (Chart + cache last-good) si l'utilisateur valide ; industrialisation possible avant.
+- Push du commit design + Lot 2 (Chart + cache last-good) si l'utilisateur
+  valide ; industrialisation possible avant.

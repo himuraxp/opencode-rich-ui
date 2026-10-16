@@ -3,24 +3,23 @@
  *
  * Reuses the shared chrome (components/chrome.ts) with the panel's two layout
  * modes:
- * - bordered (>= 40): label on the border, value in the accent color, delta
- *   below.
- * - compact  (< 40): left rule, label as the first accent line.
+ * - bordered (>= 40): label on the border, then ONE line "value … delta" with
+ *   the delta right-aligned when it fits (design review P0-1); otherwise the
+ *   delta wraps to its own line.
+ * - compact  (< 40): left rule, label as the first muted line.
  * In BOTH modes the delta gets a directional arrow derived from its leading
  * sign (the arrow is delta semantics, not layout chrome).
  *
  * Semantic mapping (defensive palette — missing theme tokens inherit):
  * - label → border title (bordered) / muted first line (compact).
- * - value → palette.title (accent) in BOTH modes — it is the component's core.
- * - delta → palette.text.
- *
- * The arrow is presentation only (▲ for leading "+", ▼ for leading "-"); the
- * semantic color stays the agent's choice via `tone`.
+ * - value → accent in BOTH modes, bold — it is the component's core.
+ * - delta → accent tone when provided by the agent (semantic, never a
+ *   sign→color guess: a rising error rate is bad), otherwise text.
  */
 
 import type { BoxRenderable } from "@opentui/core";
 import type { MetricSpec } from "../core/schema.ts";
-import { layoutFor, truncateToWidth } from "../layout/width.ts";
+import { layoutFor, truncateToWidth, visualLength } from "../layout/width.ts";
 import type { ComponentPalette } from "../adapter/theme.ts";
 import type { RenderContextLike } from "../adapter/opencode-api.ts";
 import {
@@ -29,6 +28,9 @@ import {
   destroyBox,
   textBlock,
 } from "./chrome.ts";
+
+/** Same-line layout requires at least 2 separating cells between value and delta. */
+const SAME_LINE_GAP = 2;
 
 export function buildMetric(options: {
   spec: MetricSpec;
@@ -40,23 +42,39 @@ export function buildMetric(options: {
   const profile = layoutFor(terminalWidth);
   const inner = profile.innerWidth;
   const accent = palette.title ?? palette.text;
+  // The agent's `tone` IS the delta semantics (it knows whether a rise is
+  // good): delta inherits the tone accent, never a sign→color guess.
+  const deltaColor = accent;
 
   const valueLine = truncateToWidth(spec.value, inner);
   const deltaLine = spec.delta !== undefined ? deltaWithArrow(spec.delta, inner) : undefined;
 
+  // Same-line layout: "value … delta" with the delta right-aligned.
+  const sameLine =
+    deltaLine !== undefined &&
+    visualLength(valueLine) + SAME_LINE_GAP + visualLength(deltaLine) <= inner;
+  const valueRow =
+    sameLine && deltaLine !== undefined
+      ? (valueLine +
+        " ".repeat(inner - visualLength(valueLine) - visualLength(deltaLine)) +
+        deltaLine).trimEnd()
+      : valueLine;
+
   if (profile.bordered) {
     let box: BoxRenderable | undefined;
     try {
-      const contentLines = deltaLine !== undefined ? 2 : 1;
+      const contentLines = sameLine || deltaLine === undefined ? 1 : 2;
       box = createBorderedBox(renderer, {
         profile,
         palette,
         ...(spec.label !== undefined ? { title: spec.label } : {}),
         height: contentLines + 2,
       });
-      box.add(textBlock(renderer, valueLine, accent, { left: 1, right: 1 }));
-      if (deltaLine !== undefined) {
-        box.add(textBlock(renderer, deltaLine, palette.text, { left: 1, right: 1 }));
+      if (sameLine || deltaLine === undefined) {
+        box.add(textBlock(renderer, valueRow, accent, { left: 1, right: 1 }, { bold: true }));
+      } else {
+        box.add(textBlock(renderer, valueLine, accent, { left: 1, right: 1 }, { bold: true }));
+        box.add(textBlock(renderer, deltaLine, deltaColor, { left: 1, right: 1 }));
       }
       return box;
     } catch (error) {
@@ -68,14 +86,17 @@ export function buildMetric(options: {
   let box: BoxRenderable | undefined;
   try {
     const heading = spec.label !== undefined ? truncateToWidth(spec.label, inner) : undefined;
-    const height = (heading !== undefined ? 1 : 0) + 1 + (deltaLine !== undefined ? 1 : 0);
+    const bodyLines = sameLine || deltaLine === undefined ? 1 : 2;
+    const height = (heading !== undefined ? 1 : 0) + bodyLines;
     box = createCompactBox(renderer, { profile, palette, height });
     if (heading !== undefined) {
       box.add(textBlock(renderer, heading, palette.muted, { left: 1 }));
     }
-    box.add(textBlock(renderer, valueLine, accent, { left: 1 }));
-    if (deltaLine !== undefined) {
-      box.add(textBlock(renderer, deltaLine, palette.text, { left: 1 }));
+    if (sameLine || deltaLine === undefined) {
+      box.add(textBlock(renderer, valueRow, accent, { left: 1 }, { bold: true }));
+    } else {
+      box.add(textBlock(renderer, valueLine, accent, { left: 1 }, { bold: true }));
+      box.add(textBlock(renderer, deltaLine, deltaColor, { left: 1 }));
     }
     return box;
   } catch (error) {

@@ -88,7 +88,9 @@ export function buildTable(options: {
     if (rendered.headerLines.length > 0) {
       box.add(textBlock(renderer, rendered.headerLines.join("\n"), palette.title, { left: 1 }));
     }
-    box.add(textBlock(renderer, rendered.ruleLine, palette.border, { left: 1 }));
+    // Internal separators are attenuated (muted) so the frame stays the
+    // strongest line on screen (design review P1-5).
+    box.add(textBlock(renderer, rendered.ruleLine, palette.muted ?? palette.border, { left: 1 }));
     if (rendered.bodyLines.length > 0) {
       box.add(textBlock(renderer, rendered.bodyLines.join("\n"), palette.text, { left: 1 }));
     }
@@ -132,8 +134,13 @@ function renderTable(spec: TableSpec, innerWidth: number): RenderedTable {
     columnWidths.push(Math.max(MIN_COLUMN_WIDTH, Math.min(widest, maxColumnWidth)));
   }
 
-  const padTo = (line: string, width: number): string =>
-    line + " ".repeat(Math.max(0, width - visualLength(line)));
+  /** Whole-cell numbers (and signed decimals) are right-aligned in their column. */
+  const NUMERIC_CELL = /^-?\d+(?:[.,]\d+)?$/;
+
+  const padTo = (line: string, width: number, alignRight: boolean): string => {
+    const gap = Math.max(0, width - visualLength(line));
+    return alignRight ? " ".repeat(gap) + line : line + " ".repeat(gap);
+  };
 
   /** Render one logical row (array of cells) into padded physical lines. */
   const renderRow = (cells: readonly string[]): string[] => {
@@ -143,7 +150,12 @@ function renderTable(spec: TableSpec, innerWidth: number): RenderedTable {
     const physicalCount = Math.max(...wrapped.map((lines) => lines.length), 1);
     const physical: string[] = [];
     for (let j = 0; j < physicalCount; j++) {
-      const parts = columnWidths.map((width, i) => padTo(wrapped[i]?.[j] ?? "", width));
+      const parts = columnWidths.map((width, i) => {
+        const line = wrapped[i]?.[j] ?? "";
+        // Right-align only pure numbers (single physical line): a reliable
+        // signal — "12ms" etc. stay left-aligned.
+        return padTo(line, width, NUMERIC_CELL.test(line) && physicalCount === 1);
+      });
       physical.push(parts.join(" ".repeat(COLUMN_GAP)).trimEnd());
     }
     return physical;

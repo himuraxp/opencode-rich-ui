@@ -16,7 +16,7 @@
  * rethrowing (the adapter converts the failure into the default rendering).
  */
 
-import { BoxRenderable, TextRenderable } from "@opentui/core";
+import { BoxRenderable, TextRenderable, createTextAttributes } from "@opentui/core";
 import type { ColorValue } from "../adapter/opencode-api.ts";
 import type { ComponentPalette } from "../adapter/theme.ts";
 import type { RenderContextLike } from "../adapter/opencode-api.ts";
@@ -74,17 +74,19 @@ export function createCompactBox(
   });
 }
 
-/** One selectable multi-line text node with an optional foreground color. */
+/** One selectable multi-line text node with optional foreground color and bold. */
 export function textBlock(
   renderer: RenderContextLike,
   content: string,
   color: ColorValue | undefined,
   padding: { readonly left?: number; readonly right?: number },
+  options?: { readonly bold?: boolean },
 ): TextRenderable {
   return new TextRenderable(renderer, {
     content,
     wrapMode: "none",
     selectable: false,
+    ...(options?.bold ? { attributes: createTextAttributes({ bold: true }) } : {}),
     ...(padding.left !== undefined ? { paddingLeft: padding.left } : {}),
     ...(padding.right !== undefined ? { paddingRight: padding.right } : {}),
     ...(color !== undefined ? { fg: color } : {}),

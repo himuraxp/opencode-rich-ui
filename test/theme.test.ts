@@ -10,7 +10,7 @@ import type { ColorValue, ThemeTokens } from "../src/adapter/opencode-api.ts";
 const HOST_RGBA = { r: 255, g: 128, b: 0, a: 255 } as ColorValue;
 
 describe("paletteFor", () => {
-  test("maps tone feedback to title and border, text to base/muted", () => {
+  test("maps tone feedback to title only; border uses the neutral theme token", () => {
     const theme = {
       text: {
         base: "#ffffff",
@@ -22,12 +22,23 @@ describe("paletteFor", () => {
 
     const success = paletteFor(theme, "success");
     expect(success.title).toBe(HOST_RGBA);
-    expect(success.border).toBe(HOST_RGBA);
+    expect(success.border).toBeUndefined(); // no border token in this theme
     expect(success.text).toBe("#ffffff");
     expect(success.muted).toBe("#888888");
 
     const error = paletteFor(theme, "error");
     expect(error.title).toBe("#ff0000");
+  });
+
+  test("border token from the theme is used when present (neutral, not tone)", () => {
+    const theme = {
+      text: { base: "#fff", muted: "#888", feedback: { success: { base: HOST_RGBA } } },
+      background: { base: "#000" },
+      border: "#444444",
+    } as unknown as ThemeTokens;
+    const palette = paletteFor(theme, "success");
+    expect(palette.title).toBe(HOST_RGBA);
+    expect(palette.border).toBe("#444444");
   });
 
   test("missing feedback branch → no title/border (inherits defaults)", () => {

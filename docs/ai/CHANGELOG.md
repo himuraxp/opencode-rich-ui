@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 2026-10-16 (Itération design) — APPROVED ChatGPT tour 2
+- Cowork skill `ai-cowork` : boucle ChatGPT (browser-debug) 2 tours —
+  ITERATE (9 points) puis **APPROVED** ; veto [P0-3] (masquage JSON partiel)
+  accepté par le reviewer externe.
+- `theme.ts` : paletteFor — bordures neutres (token border), tone sur le
+  titre uniquement ; test border-token ajouté.
+- `chrome.ts` : support bold (createTextAttributes, API publique 0.6.6
+  confirmée par review).
+- `metric.ts` : same-line « value … ▲ delta » right-aligned (2 lignes en
+  narrow), value bold, trimEnd défensif ; +2 tests frame peinte (same-line,
+  borne exactly-fits/inner−1).
+- `table.ts` : règle interne muted, cellules purement numériques
+  right-aligned (mono-ligne, headers exclus) ; assertion alignement mise à
+  jour.
+- Tests : 108 → **111 verts** ; review Reviewer mergeable (R1/R3 corrigés,
+  R2 → W-05, R4 → docs/ai).
+- Harnais : `render_png.py` (pyte→PIL, offsets auto-détectés) → sheets PNG
+  design-sheet{-v2}.png pour le reviewer externe.
+
 ## 2026-10-16 (Lot 1) — Metric + Table, gate ratifié
 - `metric.ts` : label/value/delta, value en accent, flèches ▲/▼ dérivées du
   signe (les deux modes), label muted en compact.

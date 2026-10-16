@@ -232,6 +232,37 @@ describe("buildMetric (headless OpenTUI rendering)", () => {
     expect(frame).toContain("╭"); // bordered chrome
   });
 
+  test("same-line: delta is right-aligned on the value row when it fits", async () => {
+    const s = await getSetup();
+    const spec: MetricSpec = { component: "metric", label: "Coverage", value: "94.2%", delta: "+1.3" };
+    const renderable = buildMetric({ spec, palette, terminalWidth: 60, renderer: s.renderer });
+    s.renderer.root.add(renderable);
+    await s.renderOnce();
+    const frame = s.captureCharFrame();
+    s.renderer.root.remove(renderable);
+
+    // inner = 56: "94.2%" (5) + gap (2) + "▲ 1.3" (5) fits → one row, delta
+    // right-aligned near the right border (design review P0-1). The exact
+    // trailing gap includes the textBlock padding (1-2 cells, host-painted).
+    expect(frame).toMatch(/94\.2%\s+▲ 1\.3 {1,2}│/);
+    const arrowRows = frame.split("\n").filter((l) => l.includes("▲"));
+    expect(arrowRows).toHaveLength(1); // no wrapped second row
+  });
+
+  test("same-line boundary: value+gap+delta one cell over inner wraps the delta", async () => {
+    const s = await getSetup();
+    // inner = 56: 50 + 2 + 5 = 57 > 56 → the delta falls to its own row.
+    const spec: MetricSpec = { component: "metric", label: "Coverage", value: "x".repeat(50), delta: "+1.3" };
+    const renderable = buildMetric({ spec, palette, terminalWidth: 60, renderer: s.renderer });
+    s.renderer.root.add(renderable);
+    await s.renderOnce();
+    const frame = s.captureCharFrame();
+    s.renderer.root.remove(renderable);
+
+    expect(frame).not.toMatch(/x+ {2}▲/); // not on the value row
+    expect(frame).toContain("▲ 1.3"); // but still painted, untruncated
+  });
+
   test("leading '-' paints ▼; unsigned delta is painted as-is (no arrow)", async () => {
     const s = await getSetup();
 
@@ -351,11 +382,12 @@ describe("buildTable (headless OpenTUI rendering)", () => {
     expect(frame).toContain("alpha");
     expect(frame).toContain("beta");
     expect(frame).toContain("─"); // rule line under the header
-    // Both columns size to their widest content ("alpha" = 5 cells) and every
-    // row is padded to that width before the 2-cell gap → aligned columns.
+    // Both columns size to their widest content ("alpha" = 5 cells). Header
+    // and text cells are left-aligned; pure numbers are RIGHT-aligned in
+    // their column (design review P1-8): 1 and 22 share a right edge.
     expect(frame).toContain("Name   Score");
-    expect(frame).toContain("alpha  1");
-    expect(frame).toContain("beta   22");
+    expect(frame).toContain("alpha      1");
+    expect(frame).toContain("beta      22");
   });
 
   test("long cells wrap within their column and never overflow the canvas", async () => {

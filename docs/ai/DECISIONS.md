@@ -1,5 +1,16 @@
 # DECISIONS
 
+## 2026-10-16 — D9 : itération design validée ChatGPT (bordures neutres, accent = signal)
+Design review externe (skill ai-cowork, 2 tours, verdict final APPROVED) :
+bordures = token **border** neutre du thème (jamais l'accent du tone) — le
+tone s'exprime uniquement sur le titre/la valeur (paletteFor) ; metric
+same-line « value … ▲ delta » (right-aligned si ça tient, 2 lignes sinon),
+value bold ; table : règle interne muted, cellules purement numériques
+right-aligned (regex stricte, jamais "12ms"). La recommandation [P0-3]
+« masquer le JSON incomplet au streaming » est **rejetée** : contredit la
+règle explicite de fallback (contenu jamais perdu) — veto accepté par le
+reviewer externe. Limite connue : W-05 (largeur Ambiguous des flèches).
+
 ## 2026-10-16 — D1 : rendu inline via registerCodeBlockRenderer (ADR-001)
 Choisi : `api.markdown.registerCodeBlockRenderer("richui", fn)` (API publique,
 dispatch code-block-only du runtime). Rejetés comme stratégie primaire :

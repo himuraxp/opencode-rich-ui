@@ -20,7 +20,7 @@ export interface ComponentPalette {
   readonly border?: ColorValue;
 }
 
-/** Tone → theme token mapping for the panel accent. */
+/** Tone → theme token mapping for the component accent. */
 export function paletteFor(theme: ThemeTokens | undefined, tone: string): ComponentPalette {
   if (!theme) return {};
   const feedback = feedbackColor(theme, tone);
@@ -29,10 +29,11 @@ export function paletteFor(theme: ThemeTokens | undefined, tone: string): Compon
   if (isColorValue(text)) palette.text = text;
   const muted = theme.text?.muted;
   if (isColorValue(muted)) palette.muted = muted;
-  if (isColorValue(feedback)) {
-    palette.title = feedback;
-    palette.border = feedback;
-  }
+  // Accent carries the tone ONLY through the title: borders use the neutral
+  // border token so the accent keeps its role as a visual signal (design
+  // review, P0-2). No border token → components inherit the host default.
+  if (isColorValue(feedback)) palette.title = feedback;
+  if (isColorValue(theme.border)) palette.border = theme.border;
   return palette;
 }
 
